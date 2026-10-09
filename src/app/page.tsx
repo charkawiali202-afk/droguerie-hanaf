@@ -1,5 +1,6 @@
 import Link from "next/link";
 import FeaturedGrid from "@/components/FeaturedGrid";
+import HomeLamp from "@/components/HomeLamp";
 import Reviews from "@/components/Reviews";
 import ScrollFX from "@/components/ScrollFX";
 import T from "@/components/T";
@@ -80,17 +81,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Lamps teaser */}
-      <section aria-labelledby="lamps-teaser" className="relative overflow-hidden bg-[#06080d] text-white">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={photo("photo-1760727466793-5415cfcd8994", 1400)} alt="" loading="lazy" className="absolute inset-0 size-full object-cover opacity-45" data-hero-img />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_10%,#06080d_80%)]" />
-        <div data-reveal className="relative mx-auto max-w-6xl px-4 py-24 sm:py-32">
-          <p className="text-sm font-semibold text-amber-200/90"><T k="home.lamps.kicker" /></p>
-          <h2 id="lamps-teaser" className="mt-1 max-w-lg font-display text-5xl font-bold leading-none sm:text-6xl"><T k="home.lamps.title" /></h2>
-          <Link href="/luminaires" className="press mt-8 inline-block rounded-full bg-white px-6 py-3.5 font-semibold text-ink"><T k="home.lamps.cta" /></Link>
-        </div>
-      </section>
+      <HomeLamp />
 
       {/* Cash on delivery */}
       <section aria-labelledby="cod" className="mx-auto max-w-6xl px-4 py-16 sm:py-24">

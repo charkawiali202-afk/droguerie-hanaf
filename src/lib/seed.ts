@@ -1,7 +1,8 @@
 export type Category = { id: string; name: string; image?: string; blurb?: string };
 export type Product = {
   id: string; name: string; price: number; categoryId: string;
-  image: string; description: string; stock: number; featured?: boolean;
+  /** `image` is the card image and always equals images[0] when images is set. */
+  image: string; images?: string[]; description: string; stock: number; featured?: boolean;
   /** Luminaires only. If imageOff is empty, the "off" look is the on photo darkened with CSS. */
   imageOff?: string; imageOn?: string;
 };
@@ -28,6 +29,23 @@ const lamp = (id: string, name: string, price: number, stock: number, img: strin
   ({ ...p(id, name, price, LAMPS, stock, img, description), imageOn: photo(img), imageOff: "" });
 
 export const HERO_IMAGE = "photo-1581783898377-1c85bf937427";
+
+// Extra gallery photos per product (Unsplash). The first image stays the product's own.
+const EXTRA: Record<string, string[]> = {
+  p1: ["photo-1673297821205-e0575bbc2ab7"],
+  p2: ["photo-1516962080544-eac695c93791", "photo-1652829069834-2c05031199c5", "photo-1525909002-1b05e0c869d8"],
+  p7: ["photo-1550985543-49bee3167284"],
+  p8: ["photo-1566937169390-7be4c63b8a0e"],
+  p9: ["photo-1542855368-ca6ea825bca2"],
+  p14: ["photo-1698768144235-b5dbe3043bb2", "photo-1520254695104-2765bc239df7"],
+  p15: ["photo-1485119502162-016e4409beab"],
+  p17: ["photo-1635602739175-bab409a6e94c"],
+  p20: ["photo-1614424428282-b2b1e72c6a4e"],
+  p21: ["photo-1684867430779-e66e779a19b7", "photo-1697293585549-6eb147d2a8f4"],
+  p23: ["photo-1692651771569-95dd3ed878a8", "photo-1599277100479-3252d492a19a"],
+  l1: ["photo-1590003689662-0773d48b6417"],
+};
+export const gallery = (p: Product) => (p.images?.length ? p.images : p.image ? [p.image] : []);
 
 export const SEED: Data = {
   categories: [
@@ -73,3 +91,4 @@ export const SEED: Data = {
     p("p24", "Eau de Javel 5 L", 30, "entretien", 50, "photo-1563453392212-326f5e854473", "Nettoie et désinfecte sols, sanitaires et surfaces. Bien diluer avant usage."),
   ],
 };
+SEED.products = SEED.products.map((p) => (EXTRA[p.id] ? { ...p, images: [p.image, ...EXTRA[p.id].map((id) => photo(id))] } : p));

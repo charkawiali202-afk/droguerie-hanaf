@@ -1,12 +1,13 @@
 "use client";
 import Link from "next/link";
 import { useState } from "react";
+import Gallery from "@/components/Gallery";
 import ProductCard, { ProductImage } from "@/components/ProductCard";
 import ScrollFX from "@/components/ScrollFX";
 import Reviews from "@/components/Reviews";
 import { BUSINESS } from "@/lib/business";
 import { catName, useLang } from "@/lib/i18n";
-import { LAMPS } from "@/lib/seed";
+import { gallery, LAMPS } from "@/lib/seed";
 import { addToCart, formatMAD, setDrawer, useStore } from "@/lib/store";
 
 export default function ProductView({ id }: { id: string }) {
@@ -33,7 +34,7 @@ export default function ProductView({ id }: { id: string }) {
     "@type": "Product",
     name: p.name,
     description: p.description,
-    image: p.imageOn || p.image || undefined,
+    image: gallery(p).length ? gallery(p) : undefined,
     offers: {
       "@type": "Offer",
       price: p.price,
@@ -56,8 +57,8 @@ export default function ProductView({ id }: { id: string }) {
           )}
         </nav>
         <div className="grid gap-8 md:grid-cols-2 md:gap-12">
-          <div data-reveal className="overflow-hidden rounded-3xl">
-            <ProductImage p={p} eager />
+          <div data-reveal>
+            {gallery(p).length ? <Gallery key={p.id} images={gallery(p)} alt={p.name} /> : <ProductImage p={p} eager className="rounded-3xl" />}
           </div>
           <div data-reveal className="md:pt-6">
             {cat && <p className="text-sm font-semibold uppercase tracking-[0.12em] text-blue">{catName(t, cat)}</p>}

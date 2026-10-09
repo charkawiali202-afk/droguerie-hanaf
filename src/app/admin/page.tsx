@@ -1,6 +1,6 @@
 "use client";
 import { useState, useSyncExternalStore } from "react";
-import { LAMPS } from "@/lib/seed";
+import { gallery, LAMPS } from "@/lib/seed";
 import { formatMAD, reviews as reviewsStore, orders as ordersStore, uid, useStore, type Order, type OrderStatus, type Product, type Review } from "@/lib/store";
 
 // ponytail: client-side gate, fine for a demo with localStorage data. Real auth needed once data moves to a server DB.
@@ -151,6 +151,53 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
   );
 }
 
+function readFile(f: File, cb: (url: string) => void) {
+  if (f.size > 500_000) { alert(`${f.name} : image trop lourde pour la démo (max 500 Ko). Utilisez plutôt une URL.`); return cb(""); }
+  const r = new FileReader();
+  r.onload = () => cb(String(r.result));
+  r.readAsDataURL(f);
+}
+
+/** Ordered product photos. The first one is the card image. */
+function ImagesField({ value, onChange }: { value: string[]; onChange: (v: string[]) => void }) {
+  const [url, setUrl] = useState("");
+  const move = (i: number, d: number) => {
+    const j = i + d;
+    if (j < 0 || j >= value.length) return;
+    const next = [...value];
+    [next[i], next[j]] = [next[j], next[i]];
+    onChange(next);
+  };
+  const add = (u: string) => { if (u.trim()) onChange([...value, u.trim()]); };
+  const btn = "press grid size-9 place-items-center rounded-lg border border-line text-sm disabled:opacity-30";
+  return (
+    <fieldset className="space-y-2">
+      <legend className="text-sm font-medium">Photos <span className="font-normal text-muted">(la première sert de vignette)</span></legend>
+      {value.length > 0 && (
+        <ol className="space-y-2">
+          {value.map((src, i) => (
+            <li key={src.slice(0, 80) + i} className="flex items-center gap-2 rounded-xl bg-surface p-2">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={src} alt="" className="size-14 shrink-0 rounded-lg object-cover" />
+              <span className="min-w-0 flex-1 truncate text-xs text-muted">{i === 0 ? "Vignette · " : ""}{src.startsWith("data:") ? "fichier téléversé" : src}</span>
+              <button type="button" className={btn} onClick={() => move(i, -1)} disabled={i === 0} aria-label="Monter">↑</button>
+              <button type="button" className={btn} onClick={() => move(i, 1)} disabled={i === value.length - 1} aria-label="Descendre">↓</button>
+              <button type="button" className={btn + " text-red-700"} onClick={() => onChange(value.filter((_, k) => k !== i))} aria-label="Retirer">×</button>
+            </li>
+          ))}
+        </ol>
+      )}
+      <div className="flex gap-2">
+        <input type="url" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://… (URL d'une photo)" aria-label="URL d'une photo" className={input}
+          onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); add(url); setUrl(""); } }} />
+        <button type="button" onClick={() => { add(url); setUrl(""); }} className="press shrink-0 rounded-lg border border-line px-3 text-sm font-semibold">Ajouter</button>
+      </div>
+      <input type="file" accept="image/*" multiple aria-label="Téléverser des photos" className="block w-full text-sm"
+        onChange={(e) => { const files = [...(e.target.files ?? [])]; const acc = [...value]; let left = files.length; files.forEach((f) => readFile(f, (u) => { if (u) acc.push(u); if (--left === 0) onChange([...acc]); })); e.target.value = ""; }} />
+    </fieldset>
+  );
+}
+
 function ImageField({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
   const onFile = (f?: File) => {
     if (!f) return;
@@ -178,7 +225,7 @@ function ImageField({ label, value, onChange }: { label: string; value: string; 
 function ProductForm({ initial, categories, onSave, onClose }: {
   initial: Product; categories: { id: string; name: string }[]; onSave: (p: Product) => void; onClose: () => void;
 }) {
-  const [p, setP] = useState(initial);
+  const [p, setP] = useState<Product>({ ...initial, images: gallery(initial) });
   const set = <K extends keyof Product>(k: K, v: Product[K]) => setP((x) => ({ ...x, [k]: v }));
 
   return (
@@ -205,7 +252,7 @@ function ProductForm({ initial, categories, onSave, onClose }: {
             {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
         </label>
-        <ImageField label="Image principale" value={p.image} onChange={(v) => set("image", v)} />
+        <ImagesField value={p.images ?? []} onChange={(v) => setP((x) => ({ ...x, images: v, image: v[0] ?? "" }))} />
         {p.categoryId === LAMPS && (
           <div className="space-y-3 rounded-xl bg-surface p-3">
             <p className="text-sm text-muted">Luminaire : photo éteinte et photo allumée pour la page Luminaires. Sans photo éteinte, la photo allumée est assombrie automatiquement.</p>

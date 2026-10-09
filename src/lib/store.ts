@@ -31,7 +31,7 @@ function localStore<T>(key: string, fallback: T) {
   return { get, set, use };
 }
 
-const catalog = localStore<Data>("hanaf-data-v3", SEED);
+const catalog = localStore<Data>("hanaf-data-v4", SEED);
 export type CartLine = { id: string; qty: number };
 export const cart = localStore<CartLine[]>("hanaf-cart", []);
 export const orders = localStore<Order[]>("hanaf-orders", []);

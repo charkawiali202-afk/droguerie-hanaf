@@ -153,6 +153,7 @@ const fr = {
   "lamps.off": "Éteint",
   "lamps.switch": "Allumer toutes les lampes",
   "lamps.empty": "Aucun luminaire pour le moment.",
+  "lamps.hint": "Promenez le doigt ou la souris pour éclairer la pièce.",
 
   "about.kicker": "À propos",
   "about.title": "Notre histoire",
@@ -322,6 +323,7 @@ const en: Record<Key, string> = {
   "lamps.off": "Off",
   "lamps.switch": "Turn all lamps on",
   "lamps.empty": "No lamps yet.",
+  "lamps.hint": "Move your finger or mouse to light up the room.",
   "about.kicker": "About",
   "about.title": "Our story",
   "about.lead": "Founded in 1998 by Rachid Hanaf, in Marrakech.",
@@ -488,6 +490,7 @@ const ar: Record<Key, string> = {
   "lamps.off": "مطفأ",
   "lamps.switch": "إضاءة جميع المصابيح",
   "lamps.empty": "لا توجد مصابيح حالياً.",
+  "lamps.hint": "حرّك إصبعك أو الفأرة لإضاءة الغرفة.",
   "about.kicker": "من نحن",
   "about.title": "قصتنا",
   "about.lead": "تأسست سنة 1998 على يد رشيد حناف، في مراكش.",
