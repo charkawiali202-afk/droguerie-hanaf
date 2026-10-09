@@ -47,7 +47,7 @@ export default function About() {
           <div className="mt-6 space-y-5 text-lg text-muted text-pretty">
             {STORY.map((k) => <p key={k} data-reveal><T k={k} /></p>)}
           </div>
-          <blockquote data-reveal className="mt-10 border-s-4 border-blue ps-6 font-display text-3xl font-bold leading-tight text-ink text-balance">
+          <blockquote data-reveal className="mt-10 font-display text-3xl font-bold leading-tight text-blue text-balance">
             <T k="about.quote" />
           </blockquote>
         </div>
