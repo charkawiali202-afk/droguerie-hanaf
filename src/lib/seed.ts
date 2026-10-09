@@ -2,7 +2,14 @@ export type Category = { id: string; name: string; image?: string; blurb?: strin
 export type Product = {
   id: string; name: string; price: number; categoryId: string;
   image: string; description: string; stock: number; featured?: boolean;
+  /** Luminaires only. If imageOff is empty, the "off" look is the on photo darkened with CSS. */
+  imageOff?: string; imageOn?: string;
 };
+export type Review = {
+  id: string; productId: string | null; name: string; rating: number; comment: string;
+  createdAt: string; status: "pending" | "approved";
+};
+export const LAMPS = "luminaires";
 export type Data = { categories: Category[]; products: Product[] };
 export type OrderStatus = "nouvelle" | "confirmée" | "livrée" | "annulée";
 export type Order = {
@@ -17,6 +24,9 @@ export const photo = (id: string, w = 800) => `https://images.unsplash.com/${id}
 const p = (id: string, name: string, price: number, categoryId: string, stock: number, img: string, description: string, featured = false): Product =>
   ({ id, name, price, categoryId, stock, description, image: photo(img), featured });
 
+const lamp = (id: string, name: string, price: number, stock: number, img: string, description: string): Product =>
+  ({ ...p(id, name, price, LAMPS, stock, img, description), imageOn: photo(img), imageOff: "" });
+
 export const HERO_IMAGE = "photo-1581783898377-1c85bf937427";
 
 export const SEED: Data = {
@@ -27,6 +37,7 @@ export const SEED: Data = {
     { id: "electricite", name: "Électricité", image: photo("photo-1518181835702-6eef8b4b2113", 600), blurb: "Câbles, appareillage, éclairage" },
     { id: "quincaillerie", name: "Quincaillerie", image: photo("photo-1613945831677-383c19ad7721", 600), blurb: "Visserie, fixations, serrures" },
     { id: "jardinage", name: "Jardinage", image: photo("photo-1416879595882-3373a0480b5b", 600), blurb: "Arrosage et outils de jardin" },
+    { id: "luminaires", name: "Luminaires", image: photo("photo-1592622515232-6e3e2a0d3d9a", 600), blurb: "Suspensions, lampes, appliques" },
     { id: "entretien", name: "Produits d'entretien", image: photo("photo-1563453392212-326f5e854473", 600), blurb: "Nettoyage et désinfection" },
   ],
   products: [
@@ -53,6 +64,12 @@ export const SEED: Data = {
     p("p21", "Tuyau d'arrosage 25 m", 160, "jardinage", 15, "photo-1715407157720-aff745f27568", "Tuyau anti-torsion Ø15 mm, quatre couches, livré avec raccords et lance.", true),
     p("p22", "Sécateur de jardin", 75, "jardinage", 20, "photo-1617576683096-00fc8eecb3af", "Lames acier traité, coupe jusqu'à 20 mm, poignées ergonomiques avec verrou."),
     p("p23", "Arrosoir 10 L", 50, "jardinage", 18, "photo-1667992714862-df8713baf8c6", "Plastique résistant aux UV, pomme amovible."),
+    lamp("l1", "Suspension métal noir Ø30", 240, 10, "photo-1592622515232-6e3e2a0d3d9a", "Abat-jour en métal laqué noir mat, douille E27, câble textile réglable 1 m. Idéale au-dessus d'une table ou d'un comptoir."),
+    lamp("l2", "Lampe de table trépied bois", 320, 6, "photo-1517991104123-1d56a6e81ed9", "Pied trépied en bois naturel, abat-jour en tissu blanc Ø35. Interrupteur sur câble, douille E27."),
+    lamp("l3", "Applique murale vintage fer forgé", 290, 5, "photo-1758899065692-bbbb0ddfb46d", "Bras en fer forgé noir et tulipe en verre dépoli. Pour entrées, couloirs et terrasses couvertes."),
+    lamp("l4", "Lanterne marocaine en laiton", 450, 4, "photo-1760727466793-5415cfcd8994", "Lanterne ajourée en laiton travaillé à la main, verres colorés. Projette des motifs sur les murs."),
+    lamp("l5", "Ampoule filament Edison E27 4 W", 45, 60, "photo-1608429700640-453a5a242edf", "Ampoule LED à filament spirale, lumière ambrée 2200 K, intensité variable. Équivalent 25 W."),
+    lamp("l6", "Applique globe opaline", 260, 7, "photo-1587028609170-166f4e77706e", "Globe en verre opalin Ø20 sur platine métal noir. Lumière douce et diffuse."),
     p("p24", "Eau de Javel 5 L", 30, "entretien", 50, "photo-1563453392212-326f5e854473", "Nettoie et désinfecte sols, sanitaires et surfaces. Bien diluer avant usage."),
   ],
 };

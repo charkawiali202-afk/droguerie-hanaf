@@ -3,10 +3,12 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import ProductCard from "@/components/ProductCard";
 import ScrollFX from "@/components/ScrollFX";
+import { catName, useLang } from "@/lib/i18n";
 import { useStore } from "@/lib/store";
 
 export default function Catalogue() {
   const { products, categories } = useStore();
+  const { t } = useLang();
   const params = useSearchParams();
   const router = useRouter();
   const cat = params.get("cat") ?? "";
@@ -20,20 +22,20 @@ export default function Catalogue() {
   return (
     <ScrollFX deps={[cat, needle]}>
     <div className="mx-auto max-w-6xl px-4 pt-10 pb-6">
-      <p className="text-sm font-semibold text-blue">Paiement à la livraison</p>
-      <h1 className="mt-1 font-display text-5xl font-bold leading-none">Catalogue</h1>
+      <p className="text-sm font-semibold text-blue">{t("cat.kicker")}</p>
+      <h1 className="mt-1 font-display text-5xl font-bold leading-none">{t("cat.title")}</h1>
       <label className="mt-6 block">
-        <span className="sr-only">Rechercher un produit</span>
+        <span className="sr-only">{t("cat.search")}</span>
         <input
           type="search"
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder="Rechercher : rouleau, mitigeur, vis…"
+          placeholder={t("cat.searchPh")}
           className="w-full rounded-full border border-line bg-surface px-5 py-3.5 outline-none transition-colors focus:border-blue focus:bg-white"
         />
       </label>
-      <div className="-mx-4 mt-4 flex gap-2 overflow-x-auto px-4 pb-2 no-scrollbar" role="group" aria-label="Filtrer par rayon">
-        {[{ id: "", name: "Tout" }, ...categories].map((c) => (
+      <div className="-mx-4 mt-4 flex gap-2 overflow-x-auto px-4 pb-2 no-scrollbar" role="group" aria-label={t("cat.filter")}>
+        {[{ id: "", name: t("cat.all") }, ...categories].map((c) => (
           <button
             key={c.id}
             type="button"
@@ -41,22 +43,22 @@ export default function Catalogue() {
             aria-pressed={cat === c.id}
             className="press shrink-0 rounded-full border border-line px-4 py-2.5 text-sm font-semibold aria-pressed:border-blue aria-pressed:bg-blue aria-pressed:text-white"
           >
-            {c.name}
+            {c.id ? catName(t, c) : c.name}
           </button>
         ))}
       </div>
       <p className="mt-4 text-sm text-muted" aria-live="polite">
-        {list.length} produit{list.length > 1 ? "s" : ""}
+        {t("cat.count", { n: list.length })}
       </p>
       {list.length ? (
         <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
           {list.map((p) => (
-            <ProductCard key={p.id} p={p} category={categories.find((c) => c.id === p.categoryId)?.name} />
+            <ProductCard key={p.id} p={p} category={(() => { const c = categories.find((c) => c.id === p.categoryId); return c && catName(t, c); })()} />
           ))}
         </div>
       ) : (
         <p className="mt-10 text-center text-muted">
-          Aucun produit ne correspond. Essayez un autre mot, ou passez au magasin : nous l&apos;avons peut-être en réserve.
+          {t("cat.empty")}
         </p>
       )}
     </div>

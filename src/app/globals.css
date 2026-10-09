@@ -20,8 +20,8 @@
   --color-ink: var(--ink);
   --color-muted: var(--muted);
   --color-line: var(--line);
-  --font-sans: var(--font-body);
-  --font-display: var(--font-display);
+  --font-sans: var(--font-body), var(--font-ar);
+  --font-display: var(--font-display), var(--font-ar);
 }
 
 html {
@@ -29,6 +29,11 @@ html {
   -webkit-text-size-adjust: 100%;
 }
 body { background: var(--white); color: var(--ink); }
+/* Arabic script: no tracking or uppercase tricks, a touch more line height. */
+html[lang="ar"] body { font-family: var(--font-ar), sans-serif; }
+html[lang="ar"] .font-display { font-family: var(--font-ar), sans-serif; letter-spacing: 0 !important; }
+html[lang="ar"] [class*="tracking-"] { letter-spacing: 0 !important; }
+html[lang="ar"] [class*="leading-["] { line-height: 1.25 !important; }
 :focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
 input, textarea, select { font-size: 16px; }
 button, a, [role="button"] { touch-action: manipulation; }

@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { useLang } from "@/lib/i18n";
 import { addToCart, formatMAD, setDrawer, type Product } from "@/lib/store";
 
 export function ProductImage({ p, className = "", eager = false }: { p: Product; className?: string; eager?: boolean }) {
@@ -16,6 +17,7 @@ export function ProductImage({ p, className = "", eager = false }: { p: Product;
 }
 
 export default function ProductCard({ p, category }: { p: Product; category?: string }) {
+  const { t } = useLang();
   return (
     <article data-card className="group relative flex flex-col overflow-hidden rounded-2xl bg-white ring-1 ring-line">
       <div className="overflow-hidden">
@@ -29,14 +31,14 @@ export default function ProductCard({ p, category }: { p: Product; category?: st
         <div className="mt-auto flex items-end justify-between gap-2 pt-3">
           <div>
             <span className="block font-display text-lg font-bold leading-none tabular-nums">{formatMAD(p.price)}</span>
-            <span className={`text-xs ${p.stock > 0 ? "text-muted" : "text-red-700"}`}>{p.stock > 0 ? "En stock" : "Rupture"}</span>
+            <span className={`text-xs ${p.stock > 0 ? "text-muted" : "text-red-700"}`}>{p.stock > 0 ? t("p.inStock") : t("p.out")}</span>
           </div>
           <button
             type="button"
             disabled={p.stock <= 0}
             onClick={() => { addToCart(p.id); setDrawer(true); }}
             className="press relative z-10 grid size-10 shrink-0 place-items-center rounded-full bg-blue text-white disabled:bg-line disabled:text-muted"
-            aria-label={`Ajouter ${p.name} au panier`}
+            aria-label={t("p.addAria", { name: p.name })}
           >
             <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
           </button>

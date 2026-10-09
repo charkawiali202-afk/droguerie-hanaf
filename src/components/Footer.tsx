@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ADDRESS, BUSINESS } from "@/lib/business";
 import LogoMark from "./LogoMark";
+import T from "./T";
 
 export default function Footer() {
   return (
@@ -17,18 +18,20 @@ export default function Footer() {
           </p>
         </div>
         <div className="text-sm text-white/80">
-          <p className="mb-2 font-semibold text-white">Magasin</p>
+          <p className="mb-2 font-semibold text-white"><T k="footer.shop" /></p>
           <address className="not-italic">{ADDRESS}</address>
-          <p className="mt-1">Depuis {BUSINESS.since}</p>
+          <p className="mt-1"><T k="footer.since" v={{ y: BUSINESS.since }} /></p>
         </div>
         <ul className="space-y-2 text-sm text-white/80">
-          <li><Link href="/catalogue" className="hover:text-white">Catalogue</Link></li>
-          <li><Link href="/#contact" className="hover:text-white">Contact et horaires</Link></li>
-          <li><Link href="/admin" className="hover:text-white">Espace gérant</Link></li>
+          <li><Link href="/catalogue" className="hover:text-white"><T k="nav.catalogue" /></Link></li>
+          <li><Link href="/luminaires" className="hover:text-white"><T k="nav.lamps" /></Link></li>
+          <li><Link href="/a-propos" className="hover:text-white"><T k="nav.about" /></Link></li>
+          <li><Link href="/#contact" className="hover:text-white"><T k="footer.hoursContact" /></Link></li>
+          <li><Link href="/admin" className="hover:text-white"><T k="footer.admin" /></Link></li>
         </ul>
       </div>
       <p className="border-t border-white/15 px-4 py-4 text-center text-xs text-white/60">
-        © {BUSINESS.name} · Paiement à la livraison
+        © {BUSINESS.name} · <T k="footer.cod" />
       </p>
     </footer>
   );

@@ -3,6 +3,7 @@ import { useRef } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import LogoMark from "./LogoMark";
+import T from "./T";
 
 gsap.registerPlugin(useGSAP);
 const KEY = "hanaf-intro";
@@ -58,7 +59,7 @@ export default function Splash() {
         onClick={skip}
         className="press absolute right-4 bottom-[calc(1rem+env(safe-area-inset-bottom))] rounded-full px-4 py-2 text-sm font-medium text-muted"
       >
-        Passer
+        <T k="intro.skip" />
       </button>
     </div>
   );

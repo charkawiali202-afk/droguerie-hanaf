@@ -1,6 +1,7 @@
 "use client";
 import { useState, useSyncExternalStore } from "react";
-import { formatMAD, orders as ordersStore, uid, useStore, type Order, type OrderStatus, type Product } from "@/lib/store";
+import { LAMPS } from "@/lib/seed";
+import { formatMAD, reviews as reviewsStore, orders as ordersStore, uid, useStore, type Order, type OrderStatus, type Product, type Review } from "@/lib/store";
 
 // ponytail: client-side gate, fine for a demo with localStorage data. Real auth needed once data moves to a server DB.
 const PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || "hanaf2026" // ponytail: demo-only client-side gate, real auth with the database;
@@ -43,7 +44,8 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
   const [edit, setEdit] = useState<Product | null>(null);
   const [newCat, setNewCat] = useState("");
   const [q, setQ] = useState("");
-  const [tab, setTab] = useState<"commandes" | "produits" | "rayons">("commandes");
+  const [tab, setTab] = useState<"commandes" | "avis" | "produits" | "rayons">("commandes");
+  const pendingReviews = reviewsStore.use().filter((r) => r.status === "pending").length;
   const newOrders = ordersStore.use().filter((o) => o.status === "nouvelle").length;
 
   const saveProduct = (p: Product) => {
@@ -83,7 +85,7 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
       </p>
 
       <div role="tablist" aria-label="Sections" className="flex gap-1 rounded-full bg-surface p-1">
-        {([["commandes", `Commandes${newOrders ? ` (${newOrders})` : ""}`], ["produits", "Produits"], ["rayons", "Rayons"]] as const).map(([id, label]) => (
+        {([["commandes", `Commandes${newOrders ? ` (${newOrders})` : ""}`], ["avis", `Avis${pendingReviews ? ` (${pendingReviews})` : ""}`], ["produits", "Produits"], ["rayons", "Rayons"]] as const).map(([id, label]) => (
           <button key={id} role="tab" aria-selected={tab === id} onClick={() => setTab(id)}
             className="press flex-1 rounded-full px-3 py-2.5 text-sm font-semibold text-muted aria-selected:bg-white aria-selected:text-blue aria-selected:shadow-sm">
             {label}
@@ -92,6 +94,7 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
       </div>
 
       {tab === "commandes" && <Orders />}
+      {tab === "avis" && <ReviewsAdmin products={products} />}
 
       {tab === "rayons" && <section aria-labelledby="cats" className="space-y-3">
         <h2 id="cats" className="font-display text-xl font-bold">Rayons</h2>
@@ -148,18 +151,35 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
   );
 }
 
+function ImageField({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+  const onFile = (f?: File) => {
+    if (!f) return;
+    if (f.size > 500_000) return alert("Image trop lourde pour la démo (max 500 Ko). Utilisez plutôt une URL.");
+    const r = new FileReader();
+    r.onload = () => onChange(String(r.result));
+    r.readAsDataURL(f);
+  };
+  return (
+    <fieldset className="space-y-2">
+      <legend className="text-sm font-medium">{label}</legend>
+      <input type="url" aria-label={`${label} (URL)`} value={value.startsWith("data:") ? "" : value} onChange={(e) => onChange(e.target.value)} placeholder="https://…" className={input} />
+      <input type="file" accept="image/*" aria-label={`${label} (fichier)`} onChange={(e) => onFile(e.target.files?.[0])} className="block w-full text-sm" />
+      {value && (
+        <div className="flex items-center gap-3">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={value} alt="Aperçu" className="size-16 rounded-lg border border-line object-cover" />
+          <button type="button" onClick={() => onChange("")} className="text-sm underline">Retirer</button>
+        </div>
+      )}
+    </fieldset>
+  );
+}
+
 function ProductForm({ initial, categories, onSave, onClose }: {
   initial: Product; categories: { id: string; name: string }[]; onSave: (p: Product) => void; onClose: () => void;
 }) {
   const [p, setP] = useState(initial);
   const set = <K extends keyof Product>(k: K, v: Product[K]) => setP((x) => ({ ...x, [k]: v }));
-  const onFile = (f?: File) => {
-    if (!f) return;
-    if (f.size > 500_000) return alert("Image trop lourde pour la démo (max 500 Ko). Utilisez plutôt une URL.");
-    const r = new FileReader();
-    r.onload = () => set("image", String(r.result));
-    r.readAsDataURL(f);
-  };
 
   return (
     <dialog open className="fixed inset-0 z-50 m-0 flex h-full max-h-none w-full max-w-none items-end justify-center bg-ink/40 p-0 sm:items-center" aria-labelledby="pf-title"
@@ -185,17 +205,12 @@ function ProductForm({ initial, categories, onSave, onClose }: {
             {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
         </label>
-        <label className="block space-y-1"><span className="text-sm font-medium">Image (URL)</span>
-          <input type="url" value={p.image.startsWith("data:") ? "" : p.image} onChange={(e) => set("image", e.target.value)} placeholder="https://…" className={input} />
-        </label>
-        <label className="block space-y-1"><span className="text-sm font-medium">ou téléverser un fichier</span>
-          <input type="file" accept="image/*" onChange={(e) => onFile(e.target.files?.[0])} className="block w-full text-sm" />
-        </label>
-        {p.image && (
-          <div className="flex items-center gap-3">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={p.image} alt="Aperçu" className="size-16 rounded-lg border border-line object-cover" />
-            <button type="button" onClick={() => set("image", "")} className="text-sm underline">Retirer l&apos;image</button>
+        <ImageField label="Image principale" value={p.image} onChange={(v) => set("image", v)} />
+        {p.categoryId === LAMPS && (
+          <div className="space-y-3 rounded-xl bg-surface p-3">
+            <p className="text-sm text-muted">Luminaire : photo éteinte et photo allumée pour la page Luminaires. Sans photo éteinte, la photo allumée est assombrie automatiquement.</p>
+            <ImageField label="Photo éteinte" value={p.imageOff ?? ""} onChange={(v) => set("imageOff", v)} />
+            <ImageField label="Photo allumée" value={p.imageOn ?? ""} onChange={(v) => set("imageOn", v)} />
           </div>
         )}
         <label className="block space-y-1"><span className="text-sm font-medium">Description</span>
@@ -267,6 +282,42 @@ function Orders() {
                 {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
               </select>
             </label>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+function ReviewsAdmin({ products }: { products: Product[] }) {
+  const list = [...reviewsStore.use()].sort((a, b) => (a.status === b.status ? b.createdAt.localeCompare(a.createdAt) : a.status === "pending" ? -1 : 1));
+  const update = (r: Review, status: Review["status"]) => reviewsStore.set(reviewsStore.get().map((x) => (x.id === r.id ? { ...x, status } : x)));
+  const remove = (r: Review) => confirm("Supprimer cet avis ?") && reviewsStore.set(reviewsStore.get().filter((x) => x.id !== r.id));
+  return (
+    <section aria-labelledby="avis" className="space-y-4">
+      <h2 id="avis" className="font-display text-xl font-bold">Avis ({list.length})</h2>
+      <p className="text-sm text-muted">Les avis n&apos;apparaissent sur le site qu&apos;après approbation.</p>
+      {!list.length && <p className="rounded-2xl bg-surface p-8 text-center text-muted">Aucun avis pour le moment.</p>}
+      <ul className="space-y-3">
+        {list.map((r) => (
+          <li key={r.id} className="rounded-2xl p-4 ring-1 ring-line">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p className="font-semibold">{r.name} · <span className="text-blue">{"★".repeat(r.rating)}{"☆".repeat(5 - r.rating)}</span></p>
+              <span className={`rounded-full px-3 py-1 text-xs font-semibold ${r.status === "pending" ? "bg-blue text-white" : "bg-emerald-100 text-emerald-800"}`}>
+                {r.status === "pending" ? "en attente" : "publié"}
+              </span>
+            </div>
+            <p className="mt-1 text-xs text-muted">
+              {r.productId ? products.find((p) => p.id === r.productId)?.name ?? "Produit supprimé" : "Avis sur le magasin"} ·{" "}
+              {new Date(r.createdAt).toLocaleString("fr-MA", { dateStyle: "medium", timeStyle: "short" })}
+            </p>
+            <p className="mt-2 text-muted">{r.comment}</p>
+            <div className="mt-3 flex flex-wrap gap-2 text-sm">
+              {r.status === "pending"
+                ? <button onClick={() => update(r, "approved")} className="press rounded-full bg-blue px-4 py-2 font-semibold text-white">Approuver</button>
+                : <button onClick={() => update(r, "pending")} className="press rounded-full border border-line px-4 py-2">Masquer</button>}
+              <button onClick={() => remove(r)} className="press rounded-full px-4 py-2 text-red-700">Supprimer</button>
+            </div>
           </li>
         ))}
       </ul>

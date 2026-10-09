@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, League_Spartan } from "next/font/google";
+import { Inter, League_Spartan, Noto_Kufi_Arabic } from "next/font/google";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Splash from "@/components/Splash";
@@ -9,6 +9,7 @@ import "./globals.css";
 
 const display = League_Spartan({ variable: "--font-display", subsets: ["latin"], weight: ["600", "700", "800"] });
 const body = Inter({ variable: "--font-body", subsets: ["latin"] });
+const arabic = Noto_Kufi_Arabic({ variable: "--font-ar", subsets: ["arabic"], weight: ["400", "600", "700"] });
 
 const title = `${BUSINESS.name} · Quincaillerie & droguerie à Marrakech Guéliz`;
 const description =
@@ -46,10 +47,14 @@ const jsonLd = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="fr" className={`${display.variable} ${body.variable} antialiased`} suppressHydrationWarning>
+    <html lang="fr" className={`${display.variable} ${body.variable} ${arabic.variable} antialiased`} suppressHydrationWarning>
       <head>
         {/* Hide the intro before first paint if it already played this session. */}
-        <script dangerouslySetInnerHTML={{ __html: `try{if(sessionStorage.getItem("hanaf-intro"))document.documentElement.dataset.intro="seen"}catch(e){}` }} />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{var d=document.documentElement;if(sessionStorage.getItem("hanaf-intro"))d.dataset.intro="seen";var l=localStorage.getItem("hanaf-lang");if(l==="ar"||l==="en"){d.lang=l;d.dir=l==="ar"?"rtl":"ltr"}}catch(e){}`,
+          }}
+        />
       </head>
       <body className="flex min-h-dvh flex-col font-sans">
         <Splash />

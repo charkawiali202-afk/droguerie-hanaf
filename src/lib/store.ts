@@ -1,7 +1,7 @@
 "use client";
 import { useSyncExternalStore } from "react";
-import { SEED, type Data, type Order } from "./seed";
-export type { Category, Product, Order, OrderStatus } from "./seed";
+import { SEED, type Data, type Order, type Review } from "./seed";
+export type { Category, Product, Order, OrderStatus, Review } from "./seed";
 
 // ponytail: all demo data lives in each browser's localStorage; swap for a DB (e.g. Supabase)
 // when stock and orders must be shared between devices.
@@ -31,10 +31,11 @@ function localStore<T>(key: string, fallback: T) {
   return { get, set, use };
 }
 
-const catalog = localStore<Data>("hanaf-data-v2", SEED);
+const catalog = localStore<Data>("hanaf-data-v3", SEED);
 export type CartLine = { id: string; qty: number };
 export const cart = localStore<CartLine[]>("hanaf-cart", []);
 export const orders = localStore<Order[]>("hanaf-orders", []);
+export const reviews = localStore<Review[]>("hanaf-reviews", []);
 
 const noop = () => () => {};
 export const useHydrated = () => useSyncExternalStore(noop, () => true, () => false);

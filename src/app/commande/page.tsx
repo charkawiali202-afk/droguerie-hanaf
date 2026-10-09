@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { QtyControl, useCartLines } from "@/components/CartDrawer";
+import { useLang } from "@/lib/i18n";
 import { cart, formatMAD, orders, uid, useHydrated, type Order } from "@/lib/store";
 
 const field = "w-full rounded-xl border border-line bg-white px-4 py-3 outline-none transition-colors focus:border-blue";
@@ -12,6 +13,7 @@ export default function Checkout() {
   const hydrated = useHydrated();
   const [placed, setPlaced] = useState<Order | null>(null);
   const [error, setError] = useState("");
+  const { t } = useLang();
 
   if (placed) {
     return (
@@ -19,10 +21,9 @@ export default function Checkout() {
         <div className="mx-auto grid size-16 place-items-center rounded-full bg-blue text-white">
           <svg viewBox="0 0 24 24" className="size-8" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12l5 5L19 7" /></svg>
         </div>
-        <h1 className="mt-6 font-display text-4xl font-bold leading-tight">Merci, {placed.customer.name.split(" ")[0]} !</h1>
+        <h1 className="mt-6 font-display text-4xl font-bold leading-tight">{t("co.thanks", { name: placed.customer.name.split(" ")[0] })}</h1>
         <p className="mt-3 text-muted">
-          Votre commande <strong className="text-ink">n° {placed.id.toUpperCase()}</strong> est enregistrée. Nous vous appelons au{" "}
-          <strong className="text-ink">{placed.customer.phone}</strong> pour confirmer la livraison.
+          {t("co.done", { id: placed.id.toUpperCase(), phone: placed.customer.phone })}
         </p>
         <div className="mt-8 rounded-2xl bg-surface p-5 text-left">
           <ul className="space-y-2 text-sm">
@@ -31,10 +32,10 @@ export default function Checkout() {
             ))}
           </ul>
           <div className="mt-4 flex justify-between border-t border-line pt-4 font-semibold">
-            <span>À payer à la livraison</span><span className="tabular-nums">{formatMAD(placed.total)}</span>
+            <span>{t("co.toPay")}</span><span className="tabular-nums">{formatMAD(placed.total)}</span>
           </div>
         </div>
-        <Link href="/catalogue" className="press mt-8 inline-block rounded-full bg-blue px-6 py-3.5 font-semibold text-white">Continuer mes achats</Link>
+        <Link href="/catalogue" className="press mt-8 inline-block rounded-full bg-blue px-6 py-3.5 font-semibold text-white">{t("co.continue")}</Link>
       </div>
     );
   }
@@ -42,8 +43,8 @@ export default function Checkout() {
   if (hydrated && !items.length) {
     return (
       <div className="mx-auto max-w-xl px-4 py-24 text-center">
-        <h1 className="font-display text-4xl font-bold">Votre panier est vide</h1>
-        <Link href="/catalogue" className="press mt-6 inline-block rounded-full bg-blue px-6 py-3.5 font-semibold text-white">Parcourir le catalogue</Link>
+        <h1 className="font-display text-4xl font-bold">{t("co.emptyTitle")}</h1>
+        <Link href="/catalogue" className="press mt-6 inline-block rounded-full bg-blue px-6 py-3.5 font-semibold text-white">{t("cart.browse")}</Link>
       </div>
     );
   }
@@ -53,7 +54,7 @@ export default function Checkout() {
     const f = new FormData(e.currentTarget);
     const get = (k: string) => String(f.get(k) ?? "").trim();
     const phone = get("phone").replace(/[\s.-]/g, "");
-    if (!PHONE.test(phone)) return setError("Numéro de téléphone marocain invalide (ex. 06 12 34 56 78).");
+    if (!PHONE.test(phone)) return setError(t("co.badPhone"));
     const order: Order = {
       id: uid(),
       createdAt: new Date().toISOString(),
@@ -70,46 +71,46 @@ export default function Checkout() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
-      <h1 className="font-display text-5xl font-bold leading-none">Commande</h1>
+      <h1 className="font-display text-5xl font-bold leading-none">{t("co.title")}</h1>
       <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_400px]">
         <form onSubmit={submit} className="space-y-4">
-          <h2 className="font-display text-2xl font-bold">Livraison</h2>
-          <label className="block space-y-1.5"><span className="text-sm font-semibold">Nom complet</span>
+          <h2 className="font-display text-2xl font-bold">{t("co.delivery")}</h2>
+          <label className="block space-y-1.5"><span className="text-sm font-semibold">{t("co.name")}</span>
             <input name="name" required autoComplete="name" className={field} />
           </label>
-          <label className="block space-y-1.5"><span className="text-sm font-semibold">Téléphone</span>
-            <input name="phone" type="tel" required autoComplete="tel" inputMode="tel" placeholder="06 12 34 56 78" className={field} onChange={() => setError("")} />
+          <label className="block space-y-1.5"><span className="text-sm font-semibold">{t("co.phone")}</span>
+            <input name="phone" type="tel" required autoComplete="tel" inputMode="tel" placeholder="06 12 34 56 78" dir="ltr" className={field} onChange={() => setError("")} />
           </label>
-          <label className="block space-y-1.5"><span className="text-sm font-semibold">Ville</span>
+          <label className="block space-y-1.5"><span className="text-sm font-semibold">{t("co.city")}</span>
             <input name="city" required autoComplete="address-level2" defaultValue="Marrakech" className={field} />
           </label>
-          <label className="block space-y-1.5"><span className="text-sm font-semibold">Adresse</span>
-            <textarea name="address" required rows={2} autoComplete="street-address" placeholder="Quartier, rue, numéro, repère" className={field} />
+          <label className="block space-y-1.5"><span className="text-sm font-semibold">{t("co.address")}</span>
+            <textarea name="address" required rows={2} autoComplete="street-address" placeholder={t("co.addressPh")} className={field} />
           </label>
-          <label className="block space-y-1.5"><span className="text-sm font-semibold">Remarques <span className="font-normal text-muted">(facultatif)</span></span>
-            <textarea name="notes" rows={2} placeholder="Créneau préféré, étage…" className={field} />
+          <label className="block space-y-1.5"><span className="text-sm font-semibold">{t("co.notes")} <span className="font-normal text-muted">{t("co.optional")}</span></span>
+            <textarea name="notes" rows={2} placeholder={t("co.notesPh")} className={field} />
           </label>
 
           <fieldset className="space-y-2 pt-2">
-            <legend className="font-display text-2xl font-bold">Paiement</legend>
+            <legend className="font-display text-2xl font-bold">{t("co.payment")}</legend>
             <label className="flex items-center gap-3 rounded-xl border-2 border-blue bg-blue-soft p-4">
               <input type="radio" name="payment" value="cod" defaultChecked className="size-5 accent-(--blue)" />
               <span>
-                <span className="block font-semibold">Paiement à la livraison</span>
-                <span className="text-sm text-muted">En espèces, à la réception de votre commande.</span>
+                <span className="block font-semibold">{t("co.cod")}</span>
+                <span className="text-sm text-muted">{t("co.codSub")}</span>
               </span>
             </label>
           </fieldset>
 
           {error && <p role="alert" className="rounded-xl bg-red-50 p-3 text-sm font-medium text-red-800">{error}</p>}
           <button className="press w-full rounded-full bg-blue py-4 text-lg font-semibold text-white">
-            Confirmer la commande · {formatMAD(total)}
+            {t("co.confirm", { total: formatMAD(total) })}
           </button>
-          <p className="text-center text-xs text-muted">Nous vous appelons pour confirmer avant toute livraison. Frais de livraison annoncés au téléphone.</p>
+          <p className="text-center text-xs text-muted">{t("co.fine")}</p>
         </form>
 
         <aside aria-labelledby="recap" className="h-fit rounded-2xl bg-surface p-5 lg:sticky lg:top-24">
-          <h2 id="recap" className="font-display text-2xl font-bold">Récapitulatif</h2>
+          <h2 id="recap" className="font-display text-2xl font-bold">{t("co.recap")}</h2>
           <ul className="mt-4 divide-y divide-line">
             {items.map((i) => (
               <li key={i.id} className="flex gap-3 py-3">
@@ -126,7 +127,7 @@ export default function Checkout() {
             ))}
           </ul>
           <div className="mt-2 flex justify-between border-t border-line pt-4 font-display text-xl font-bold">
-            <span>Total</span><span className="tabular-nums">{formatMAD(total)}</span>
+            <span>{t("cart.total")}</span><span className="tabular-nums">{formatMAD(total)}</span>
           </div>
         </aside>
       </div>
