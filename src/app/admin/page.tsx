@@ -3,7 +3,7 @@ import { useState, useSyncExternalStore } from "react";
 import { formatMAD, orders as ordersStore, uid, useStore, type Order, type OrderStatus, type Product } from "@/lib/store";
 
 // ponytail: client-side gate, fine for a demo with localStorage data. Real auth needed once data moves to a server DB.
-const PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD ?? "";
+const PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || "hanaf2026" // ponytail: demo-only client-side gate, real auth with the database;
 const SESSION = "hanaf-admin";
 const empty: Product = { id: "", name: "", price: 0, categoryId: "", image: "", description: "", stock: 0, featured: false };
 const input = "w-full rounded-lg border border-line bg-white px-3 py-2 text-base outline-none focus:border-ink";
