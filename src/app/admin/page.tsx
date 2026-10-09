@@ -1,6 +1,6 @@
 "use client";
 import { useState, useSyncExternalStore } from "react";
-import { formatMAD, uid, useStore, type Product } from "@/lib/store";
+import { formatMAD, orders as ordersStore, uid, useStore, type Order, type OrderStatus, type Product } from "@/lib/store";
 
 // ponytail: client-side gate, fine for a demo with localStorage data. Real auth needed once data moves to a server DB.
 const PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD ?? "";
@@ -25,13 +25,13 @@ export default function Admin() {
           else setErr(PASSWORD ? "Mot de passe incorrect." : "Mot de passe non configuré (NEXT_PUBLIC_ADMIN_PASSWORD).");
         }}
       >
-        <h1 className="font-display text-2xl font-extrabold">Espace gérant</h1>
+        <h1 className="font-display text-2xl font-bold">Espace gérant</h1>
         <label className="block space-y-1">
           <span className="text-sm font-medium">Mot de passe</span>
           <input type="password" autoComplete="current-password" value={pw} onChange={(e) => setPw(e.target.value)} className={input} />
         </label>
         {err && <p role="alert" className="text-sm text-red-700">{err}</p>}
-        <button className="w-full rounded-lg bg-ink py-2.5 font-semibold text-paper">Entrer</button>
+        <button className="w-full rounded-full bg-blue py-2.5 font-semibold text-white">Entrer</button>
       </form>
     );
   }
@@ -43,6 +43,8 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
   const [edit, setEdit] = useState<Product | null>(null);
   const [newCat, setNewCat] = useState("");
   const [q, setQ] = useState("");
+  const [tab, setTab] = useState<"commandes" | "produits" | "rayons">("commandes");
+  const newOrders = ordersStore.use().filter((o) => o.status === "nouvelle").length;
 
   const saveProduct = (p: Product) => {
     const next = p.id ? products.map((x) => (x.id === p.id ? p : x)) : [{ ...p, id: uid() }, ...products];
@@ -70,21 +72,32 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
   return (
     <div className="mx-auto max-w-6xl space-y-10 px-4 py-10">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="font-display text-3xl font-extrabold">Tableau de bord</h1>
+        <h1 className="font-display text-3xl font-bold">Tableau de bord</h1>
         <div className="flex gap-2 text-sm">
           <button onClick={() => confirm("Restaurer les données de démonstration ?") && reset()} className="rounded-lg border border-line px-3 py-2">Réinitialiser la démo</button>
           <button onClick={onLogout} className="rounded-lg border border-line px-3 py-2">Déconnexion</button>
         </div>
       </div>
-      <p className="rounded-lg border border-line bg-card p-3 text-sm text-muted">
-        Démo : les modifications sont enregistrées dans ce navigateur uniquement.
+      <p className="rounded-lg border border-line bg-surface p-3 text-sm text-muted">
+        Démo : les modifications et les commandes sont enregistrées dans ce navigateur uniquement.
       </p>
 
-      <section aria-labelledby="cats" className="space-y-3">
-        <h2 id="cats" className="font-display text-xl font-extrabold">Rayons</h2>
+      <div role="tablist" aria-label="Sections" className="flex gap-1 rounded-full bg-surface p-1">
+        {([["commandes", `Commandes${newOrders ? ` (${newOrders})` : ""}`], ["produits", "Produits"], ["rayons", "Rayons"]] as const).map(([id, label]) => (
+          <button key={id} role="tab" aria-selected={tab === id} onClick={() => setTab(id)}
+            className="press flex-1 rounded-full px-3 py-2.5 text-sm font-semibold text-muted aria-selected:bg-white aria-selected:text-blue aria-selected:shadow-sm">
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {tab === "commandes" && <Orders />}
+
+      {tab === "rayons" && <section aria-labelledby="cats" className="space-y-3">
+        <h2 id="cats" className="font-display text-xl font-bold">Rayons</h2>
         <ul className="flex flex-wrap gap-2">
           {categories.map((c) => (
-            <li key={c.id} className="flex items-center gap-1 rounded-full border border-line bg-card py-1 pr-1 pl-3 text-sm">
+            <li key={c.id} className="flex items-center gap-1 rounded-full border border-line bg-surface py-1 pr-1 pl-3 text-sm">
               {c.name}
               <button onClick={() => renameCat(c.id)} className="rounded-full px-2 py-1 hover:bg-line/60" aria-label={`Renommer ${c.name}`}>✎</button>
               <button onClick={() => delCat(c.id)} className="rounded-full px-2 py-1 hover:bg-line/60" aria-label={`Supprimer ${c.name}`}>×</button>
@@ -95,19 +108,19 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
           <label className="flex-1"><span className="sr-only">Nouveau rayon</span>
             <input value={newCat} onChange={(e) => setNewCat(e.target.value)} placeholder="Nouveau rayon" className={input} />
           </label>
-          <button className="rounded-lg bg-ink px-4 font-semibold text-paper">Ajouter</button>
+          <button className="rounded-full bg-blue px-4 font-semibold text-white">Ajouter</button>
         </form>
-      </section>
+      </section>}
 
-      <section aria-labelledby="prods" className="space-y-3">
+      {tab === "produits" && <section aria-labelledby="prods" className="space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 id="prods" className="font-display text-xl font-extrabold">Produits ({products.length})</h2>
-          <button onClick={() => setEdit({ ...empty, categoryId: categories[0]?.id ?? "" })} className="rounded-lg bg-accent px-4 py-2 font-semibold text-white">+ Nouveau produit</button>
+          <h2 id="prods" className="font-display text-xl font-bold">Produits ({products.length})</h2>
+          <button onClick={() => setEdit({ ...empty, categoryId: categories[0]?.id ?? "" })} className="rounded-full bg-blue px-4 py-2 font-semibold text-white">+ Nouveau produit</button>
         </div>
         <label className="block max-w-md"><span className="sr-only">Filtrer les produits</span>
           <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Filtrer…" className={input} />
         </label>
-        <div className="overflow-x-auto rounded-xl border border-line bg-card">
+        <div className="overflow-x-auto rounded-xl border border-line bg-surface">
           <table className="w-full text-left text-sm">
             <thead className="border-b border-line text-muted">
               <tr><th className="p-3 font-medium">Nom</th><th className="hidden p-3 font-medium sm:table-cell">Rayon</th><th className="p-3 text-right font-medium">Prix</th><th className="p-3 text-right font-medium">Stock</th><th className="p-3"><span className="sr-only">Actions</span></th></tr>
@@ -115,7 +128,7 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
             <tbody>
               {list.map((p) => (
                 <tr key={p.id} className="border-b border-line last:border-0">
-                  <td className="p-3 font-medium">{p.name}{p.featured && <span className="ml-2 text-xs text-accent">★</span>}</td>
+                  <td className="p-3 font-medium">{p.name}{p.featured && <span className="ml-2 text-xs text-blue">★</span>}</td>
                   <td className="hidden p-3 text-muted sm:table-cell">{categories.find((c) => c.id === p.categoryId)?.name ?? "—"}</td>
                   <td className="p-3 text-right tabular-nums">{formatMAD(p.price)}</td>
                   <td className={`p-3 text-right tabular-nums ${p.stock === 0 ? "text-red-700" : ""}`}>{p.stock}</td>
@@ -128,7 +141,7 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
             </tbody>
           </table>
         </div>
-      </section>
+      </section>}
 
       {edit && <ProductForm key={edit.id || "new"} initial={edit} categories={categories} onSave={saveProduct} onClose={() => setEdit(null)} />}
     </div>
@@ -152,10 +165,10 @@ function ProductForm({ initial, categories, onSave, onClose }: {
     <dialog open className="fixed inset-0 z-50 m-0 flex h-full max-h-none w-full max-w-none items-end justify-center bg-ink/40 p-0 sm:items-center" aria-labelledby="pf-title"
       onKeyDown={(e) => e.key === "Escape" && onClose()}>
       <form
-        className="max-h-[92dvh] w-full max-w-lg space-y-3 overflow-y-auto rounded-t-2xl bg-paper p-5 sm:rounded-2xl"
+        className="max-h-[92dvh] w-full max-w-lg space-y-3 overflow-y-auto rounded-t-2xl bg-white p-5 sm:rounded-2xl"
         onSubmit={(e) => { e.preventDefault(); onSave({ ...p, name: p.name.trim() }); }}
       >
-        <h2 id="pf-title" className="font-display text-xl font-extrabold">{initial.id ? "Modifier le produit" : "Nouveau produit"}</h2>
+        <h2 id="pf-title" className="font-display text-xl font-bold">{initial.id ? "Modifier le produit" : "Nouveau produit"}</h2>
         <label className="block space-y-1"><span className="text-sm font-medium">Nom</span>
           <input required autoFocus value={p.name} onChange={(e) => set("name", e.target.value)} className={input} />
         </label>
@@ -189,14 +202,74 @@ function ProductForm({ initial, categories, onSave, onClose }: {
           <textarea rows={3} value={p.description} onChange={(e) => set("description", e.target.value)} className={input} />
         </label>
         <label className="flex items-center gap-2 text-sm">
-          <input type="checkbox" checked={!!p.featured} onChange={(e) => set("featured", e.target.checked)} className="size-4 accent-[var(--accent)]" />
+          <input type="checkbox" checked={!!p.featured} onChange={(e) => set("featured", e.target.checked)} className="size-4 accent-(--blue)" />
           Mettre en avant sur l&apos;accueil
         </label>
         <div className="flex justify-end gap-2 pt-2">
           <button type="button" onClick={onClose} className="rounded-lg border border-line px-4 py-2">Annuler</button>
-          <button className="rounded-lg bg-ink px-4 py-2 font-semibold text-paper">Enregistrer</button>
+          <button className="rounded-full bg-blue px-4 py-2 font-semibold text-white">Enregistrer</button>
         </div>
       </form>
     </dialog>
+  );
+}
+
+const STATUSES: OrderStatus[] = ["nouvelle", "confirmée", "livrée", "annulée"];
+const STATUS_STYLE: Record<OrderStatus, string> = {
+  nouvelle: "bg-blue text-white",
+  confirmée: "bg-blue-soft text-blue",
+  livrée: "bg-emerald-100 text-emerald-800",
+  annulée: "bg-surface text-muted line-through",
+};
+
+function Orders() {
+  const list = ordersStore.use();
+  const [filter, setFilter] = useState<OrderStatus | "">("");
+  const setStatus = (o: Order, status: OrderStatus) =>
+    ordersStore.set(ordersStore.get().map((x) => (x.id === o.id ? { ...x, status } : x)));
+  const shown = list.filter((o) => !filter || o.status === filter);
+
+  return (
+    <section aria-labelledby="orders" className="space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 id="orders" className="font-display text-xl font-bold">Commandes ({list.length})</h2>
+        <label className="text-sm"><span className="sr-only">Filtrer par statut</span>
+          <select value={filter} onChange={(e) => setFilter(e.target.value as OrderStatus | "")} className={input + " w-auto"}>
+            <option value="">Tous les statuts</option>
+            {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+          </select>
+        </label>
+      </div>
+      {!shown.length && <p className="rounded-2xl bg-surface p-8 text-center text-muted">Aucune commande pour le moment. Les commandes passées sur le site apparaissent ici.</p>}
+      <ul className="space-y-3">
+        {shown.map((o) => (
+          <li key={o.id} className="rounded-2xl p-4 ring-1 ring-line sm:p-5">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <p className="font-display text-lg font-bold">n° {o.id.toUpperCase()} · {formatMAD(o.total)}</p>
+                <p className="text-sm text-muted">{new Date(o.createdAt).toLocaleString("fr-MA", { dateStyle: "medium", timeStyle: "short" })}</p>
+              </div>
+              <span className={`rounded-full px-3 py-1 text-xs font-semibold ${STATUS_STYLE[o.status]}`}>{o.status}</span>
+            </div>
+            <div className="mt-3 grid gap-3 text-sm sm:grid-cols-2">
+              <div>
+                <p className="font-semibold">{o.customer.name}</p>
+                <a href={`tel:${o.customer.phone}`} className="text-blue underline underline-offset-4">{o.customer.phone}</a>
+                <p className="text-muted">{o.customer.address}, {o.customer.city}</p>
+                {o.customer.notes && <p className="mt-1 italic text-muted">« {o.customer.notes} »</p>}
+              </div>
+              <ul className="text-muted">
+                {o.items.map((i) => <li key={i.id}>{i.qty} × {i.name}</li>)}
+              </ul>
+            </div>
+            <label className="mt-4 flex items-center gap-2 text-sm font-medium">Statut
+              <select value={o.status} onChange={(e) => setStatus(o, e.target.value as OrderStatus)} className={input + " w-auto"}>
+                {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </label>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }

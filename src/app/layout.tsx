@@ -1,11 +1,13 @@
 import type { Metadata, Viewport } from "next";
-import { Archivo, Inter } from "next/font/google";
+import { Inter, League_Spartan } from "next/font/google";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import Splash from "@/components/Splash";
+import CartDrawer from "@/components/CartDrawer";
 import { BUSINESS } from "@/lib/business";
 import "./globals.css";
 
-const display = Archivo({ variable: "--font-display", subsets: ["latin"], weight: ["600", "800"] });
+const display = League_Spartan({ variable: "--font-display", subsets: ["latin"], weight: ["600", "700", "800"] });
 const body = Inter({ variable: "--font-body", subsets: ["latin"] });
 
 const title = `${BUSINESS.name} · Quincaillerie & droguerie à Marrakech Guéliz`;
@@ -17,10 +19,11 @@ export const metadata: Metadata = {
   title: { default: title, template: `%s · ${BUSINESS.name}` },
   description,
   alternates: { canonical: "/" },
-  openGraph: { title, description, type: "website", locale: "fr_MA", siteName: BUSINESS.name },
+  openGraph: { title, description, type: "website", locale: "fr_MA", siteName: BUSINESS.name, images: ["/logo.webp"] },
+  icons: { icon: "/logo.webp" },
   robots: { index: false, follow: false }, // demo: flip to true once the shop approves going live
 };
-export const viewport: Viewport = { themeColor: "#f4f1ea", width: "device-width", initialScale: 1 };
+export const viewport: Viewport = { themeColor: "#ffffff", width: "device-width", initialScale: 1, viewportFit: "cover", colorScheme: "light" };
 
 const jsonLd = {
   "@context": "https://schema.org",
@@ -37,16 +40,24 @@ const jsonLd = {
   },
   ...(BUSINESS.phone && { telephone: BUSINESS.phone }),
   currenciesAccepted: "MAD",
+  paymentAccepted: "Cash",
+  logo: `${BUSINESS.url}/logo.webp`,
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="fr" className={`${display.variable} ${body.variable} antialiased`}>
+    <html lang="fr" className={`${display.variable} ${body.variable} antialiased`} suppressHydrationWarning>
+      <head>
+        {/* Hide the intro before first paint if it already played this session. */}
+        <script dangerouslySetInnerHTML={{ __html: `try{if(sessionStorage.getItem("hanaf-intro"))document.documentElement.dataset.intro="seen"}catch(e){}` }} />
+      </head>
       <body className="flex min-h-dvh flex-col font-sans">
+        <Splash />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
         <Header />
         <main id="main" className="flex-1">{children}</main>
         <Footer />
+        <CartDrawer />
       </body>
     </html>
   );
