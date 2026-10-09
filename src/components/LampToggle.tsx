@@ -25,7 +25,7 @@ export default function LampToggle({ on, onChange, label, onText, offText }: {
           className={`block size-6 rounded-full bg-gradient-to-b from-white to-[#d9d4cc] shadow-[0_1px_2px_rgb(0_0_0/0.5)] transition-transform duration-[450ms] group-active:scale-90 ${
             on ? "translate-x-6 rtl:-translate-x-6" : "translate-x-0"
           }`}
-          style={{ transitionTimingFunction: "cubic-bezier(0.34, 1.56, 0.64, 1)" }}
+          style={{ transitionTimingFunction: "cubic-bezier(0.22, 1, 0.36, 1)" }}
         />
       </button>
       <span className={`text-sm font-semibold uppercase tracking-[0.16em] transition-colors duration-300 ${on ? "text-amber-100" : "text-white/45"}`} aria-hidden="true">
